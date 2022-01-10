@@ -7,7 +7,7 @@ the aim is to make a music bot that actually work and
 # disclaimer 
 this code is provide as is if youtube decided to you know take down this your bot i am in no way responsiable for that so deal with it your self lol USE AT YOUR OWN RISK
 
-*anyway to run this 
+# anyway to run this 
 do 
 need python 3.6 at least to work
 pip3 install youtube-dlp youtube-search-python scrapetube
