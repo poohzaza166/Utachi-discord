@@ -9,11 +9,12 @@ this code is provide as is if youtube decided to you know take down this your bo
 
 # anyway to run this 
 do 
+```
 need python 3.6 at least to work
 pip3 install youtube-dlp youtube-search-python scrapetube
 sudo apt install ffmpeg
 python3 -m pip install -U "py-cord[voice]"
-
+```
 then edit the config.ini file 
 replace the token with your bot token 
 choose your prefix 
