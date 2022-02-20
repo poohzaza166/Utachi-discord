@@ -8,14 +8,22 @@ the aim is to make a music bot that actually work and
 this code is provide as is if youtube decided to you know take down this your bot i am in no way responsiable for that so deal with it your self lol USE AT YOUR OWN RISK
 
 # anyway to run this 
+-you need docker and docker-compose git install
+
+reokace the emtpy bot token with your token
+replace your vc timeout (in minunit)
+replace your discord account id by https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
+
+
 do 
 ```
-need python 3.6 at least to work
-pip3 install youtube-dlp youtube-search-python scrapetube
-sudo apt install ffmpeg
-python3 -m pip install -U "py-cord[voice]"
+git clone https://github.com/poohzaza166/Utachi-discord.git
+cd Utachi-discord
+bash build\ docker.sh
+docker-compose up -d 
 ```
-then edit the config.ini file 
-replace the token with your bot token 
-choose your prefix 
-then add to your discord server then enjoy
+# to shutdown 
+```
+docker-compose down
+```
+
