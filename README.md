@@ -8,10 +8,12 @@ the aim is to make a music bot that actually work and
 this code is provide as is if youtube decided to you know take down this your bot i am in no way responsiable for that so deal with it your self lol USE AT YOUR OWN RISK
 
 # anyway to run this 
--you need docker and docker-compose git install
+you need docker and docker-compose and git install
+------
+replace the emtpy bot token with your token
 
-reokace the emtpy bot token with your token
-replace your vc timeout (in minunit)
+replace your vc timeout (in min)
+
 replace your discord account id by https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
 
 
