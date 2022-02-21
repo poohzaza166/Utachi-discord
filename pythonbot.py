@@ -689,11 +689,8 @@ def play_next(ctx):
             play_que.setdefault(guildid, []).insert(1,backinfo[guildid][-1])
             startplay(ctx)
         else:
-            try:
-                asyncio.run_coroutine_threadsafe(currentsonginfo(ctx=ctx, isplayed=True, nextsonginfo=play_que[guildid][0]), _loop)
-                startplay(ctx)
-            except:
-                pass
+            startplay(ctx)
+         
     else:
         print('seek function in use ')
 
