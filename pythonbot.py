@@ -126,7 +126,7 @@ async def on_voice_state_update(member, before, after):
                         await voice.disconnect()
                         del play_que.setdefault(before.channel.guild.id, [])[:]
                         if isloop.get(before.channel.guild.id) == True:
-                            isloop[guildid] = False
+                            isloop[before.channel.guild.id] = False
                         break
     
 
