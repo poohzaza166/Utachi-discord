@@ -99,22 +99,7 @@ async def on_ready():
 
 @client.event
 async def on_voice_state_update(member, before, after):
-    if after.channel == None:            
-        print('trying to clear playlist ok')
-        guildid = before.channel.guild.id
-        disconnected_time[guildid] = 0
-        while True:
 
-            disconnected_time[guildid] +=1
-
-            await asyncio.sleep(1)
-            if disconnected_time[guildid] >= 60:
-                del play_que.setdefault(guildid, [])[:]
-                if isloop.get(before.channel.guild.id):
-                    isloop[before.channel.guild.id] = False
-                disconnected_time[guildid] == 0
-                return
-            
     if member.id == client.user.id:
         return
     if before.channel != None:
