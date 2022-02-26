@@ -1,30 +1,25 @@
 from __future__ import unicode_literals
 import logging
 import time
-import pathlib
 import os
-from pydoc import cli
-from tempfile import TemporaryFile
 from discord import embeds
 from discord.ext.commands.errors import CommandError
 from discord.ext import tasks
 import yt_dlp
-from token import EQUAL, LESSEQUAL
 import asyncio
 #python music bot.py
 from youtubesearchpython import *
-from youtubesearchpython.__future__ import VideosSearch
 import discord
-from discord.ext import commands    
+from discord.ext import commands
 # from discord.ext import CommandError
 from discord.utils import get
 from discord import FFmpegPCMAudio
 import configparser
-from youtubesearchpython import Search
-from youtubesearchpython.__future__.search import ChannelsSearch
 import random
 import time
 import scrapetube
+from ytmusicapi import YTMusic
+ytmusic = YTMusic()
 _loop = asyncio.get_event_loop()
 # coding:utf-8
 config_string =  'config/config.ini'
@@ -52,8 +47,11 @@ play_que = {}
 hadplay = {}
 backinfo = {}
 vctimmer = {}
+playurl = {}
 
 disconnected_time = {}
+
+looplist = {}
 
 reactui = {}
 
@@ -61,7 +59,7 @@ updatecurrentsong = {}
 
 spammerlist = {}
 
-#respond list for itchy 
+#respond list for itchy
 reply = ['alright, see you soon!',"oh no, it's time to go?","utachi...\nout!"]
 replybfr = ['owh please let me play a few hundred songs before i go—', "what why— that song was great!","what why— things were getting good!","hey! i am not finished yet!"]
 replyf = ["meanie beanie!\n.·´¯`(>▂<)´¯`·. ","imma go cry in my digital corner (┬┬﹏┬┬)","GRrrrrr, that's it!\n💨","i have robotic feelings you know!","red Fine!","what an angry baby you are!"]
@@ -73,7 +71,7 @@ replypause = ['ZA WARUDO!','Okay!','am i too loud for you?','music break?','stop
 #@client.command()
 # async def leave(ctx):
 #     channels = ctx.message.author.voice.channel
-#     voice = get(client.voice_clients, guild=ctx.guild)    
+#     voice = get(client.voice_clients, guild=ctx.guild)
 #     if voice.is_connected():
 #         if voice.is_playing():
 #             await ctx.reply(random.choice(VARIABLE)) <------------- IMPORTANT TO MAKE RANDOM REPLIES.
@@ -86,7 +84,7 @@ replypause = ['ZA WARUDO!','Okay!','am i too loud for you?','music break?','stop
 
 
 # check if bot is ready
-@client.event  
+@client.event
 async def on_ready():
     for guild in client.guilds:
         print('you ok bro')
@@ -95,11 +93,39 @@ async def on_ready():
         autoleave[guildid] = False
         reactui[guildid] = False
         updatecurrentsong[guildid] = False
+        looplist[guildid] = False
     print('Bot online')
 
 @client.event
 async def on_voice_state_update(member, before, after):
+    # # print(after.channel)
+    # if after.channel == None:
+    #     print('ok')
+    #     # voice = get(client.voice_clients, channel__guild__id = before.channel.guild.id)
+    #     # # if voice.channel.id != before.channel.id:
+    #     # print('ok2')
+    #     # if voice == None:
+    #     print('trying to clear playlist ok')
+    #     guildid = before.channel.guild.id
+    #     disconnected_time[guildid] = 0
+    #     while True:
 
+    #         disconnected_time[guildid] +=1
+    #         print(disconnected_time[guildid])
+    #         print(type(after.channel))
+    #         print(after.channel)
+    #         await asyncio.sleep(1)
+    #         if disconnected_time[guildid] >= 360:
+    #             del play_que.setdefault(guildid, [])[:]
+    #             if isloop.get(before.channel.guild.id):
+    #                 isloop[before.channel.guild.id] = False
+    #             disconnected_time[guildid] == 0
+    #             return
+    #         if after.channel :
+    #             disconnected_time[guildid] = 0
+    #             play_que.setdefault(guildid, []).insert(0,play_que[guildid][0])
+    #             startplay(ctx=ctx_react)
+    #             return
     if member.id == client.user.id:
         return
     if before.channel != None:
@@ -111,12 +137,12 @@ async def on_voice_state_update(member, before, after):
         if len(voice.channel.members) <= 1:
             if autoleave.get(before.channel.guild.id) == False:
                 vctimmer[before.channel.guild.id] = 0
-                
+
                 while True:
                     print("time", str(vctimmer[before.channel.guild.id]))
 
                     await asyncio.sleep(60)
-                    
+
                     vctimmer[before.channel.guild.id] += 1
 
                     if len(voice.channel.members) >= 2:
@@ -128,7 +154,33 @@ async def on_voice_state_update(member, before, after):
                         if isloop.get(before.channel.guild.id) == True:
                             isloop[before.channel.guild.id] = False
                         break
-    
+
+# @client.event
+# async def on_socket_raw_receive(message):
+#     print(message)
+
+# @client.event
+# async def on_disconnect():
+#     if after.channel == None:
+#         print('trying to clear playlist ok')
+#         guildid = before.channel.guild.id
+#         disconnected_time[guildid] = 0
+#         while True:
+
+#             disconnected_time[guildid] +=1
+#             print(disconnected_time[guildid])
+#             await asyncio.sleep(1)
+#             if disconnected_time[guildid] >= 60:
+#                 del play_que.setdefault(guildid, [])[:]
+#                 if isloop.get(before.channel.guild.id):
+#                     isloop[before.channel.guild.id] = False
+#                 disconnected_time[guildid] == 0
+#                 return
+#             if disconnected_time[guildid] <= 60 and after.channel.id != None:
+#                 disconnected_time[guildid] = 0
+#                 play_que.setdefault(guildid, []).insert(0,play_que[guildid][0])
+#                 startplay(ctx=ctx_react)
+#                 return
 
 @client.command(aliases=['is24/7'])
 ###ANTI#SPAM##
@@ -174,62 +226,45 @@ async def join(ctx):
 
 
 # leave command
-@client.command()
+@client.command(aliases=['fuckoff'])
 ###ANTI#SPAM##
 async def leave(ctx):
-    guildid = ctx.message.guild.id
-    voice = get(client.voice_clients, guild=ctx.guild)    
-    if voice.is_playing():
-        await ctx.reply(random.choice(replybfr))
-        await ctx.guild.voice_client.disconnect()
-        await ctx.send('``>Bot left``')
-        del play_que.setdefault(guildid, [])[:]
-        if isloop.get(guildid):
-            isloop.pop(guildid)
-    else:
-        await ctx.reply(random.choice(reply))
-        await ctx.guild.voice_client.disconnect()
-        await ctx.send('``>Bot left``')
-        del play_que.setdefault(guildid, [])[:]
-        if isloop.get(guildid):
-            isloop.pop(guildid)
-
-# rude leave
-@client.command()
-###ANTI#SPAM##
-async def fuckoff(ctx):
-    guildid = ctx.message.guild.id
-    voice = get(client.voice_clients, guild=ctx.guild)    
-    if voice.is_connected():
-        await ctx.reply(random.choice(replyf))
-        await ctx.guild.voice_client.disconnect() # Leave the channels
-        await ctx.send('``>Bot left``')
-        del play_que.setdefault(guildid, [])[:]
-        if isloop.get(guildid) == True:
-            isloop[guildid] == False
-
-    else:
-        await ctx.reply(random.choice(replyf))
-        await ctx.guild.voice_client.disconnect() # Leave the channels
-        await ctx.send('``>Bot left``')
-        del play_que.setdefault(guildid, [])[:]
-        if isloop.get(guildid) == True:
-            isloop[guildid] == False
+	guildid = ctx.message.guild.id
+	voice = get(client.voice_clients, guild=ctx.guild)
+	if voice.is_playing():
+		if ctx.invoked_with == 'fuckoff':
+			await ctx.reply(random.choice(replyf))
+		else:
+			await ctx.reply(random.choice(replybfr))
+		await ctx.guild.voice_client.disconnect()
+		await ctx.send('``>Bot left``')
+		del play_que.setdefault(guildid, [])[:]
+		if isloop.get(guildid):
+			isloop.pop(guildid)
+	else:
+		if ctx.invoked_with == 'fuckoff':
+			await ctx.reply(random.choice(replyf))
+		else:
+			await ctx.reply(random.choice(reply))
+		await ctx.guild.voice_client.disconnect()
+		await ctx.send('``>Bot left``')
+		del play_que.setdefault(guildid, [])[:]
+		if isloop.get(guildid):
+			isloop.pop(guildid)
 
 # manunal command
 @client.command(aliases=['help','manunal'])
 ###ANTI#SPAM##
 async def man(ctx):
-    embeds = discord.Embed(title='Manunal', description='-play insert search terms or url or playlist link (support playing from youtube and youtube music) \n if the video is the part of the playlist I will only play the song and not the whole playlist \n -playnext simlar to play but this will insert the song to be play after the current song \n -playnow is the same as playnext but will play the song instantly \n -queue will show the song in queue \n -info is to get the current song playing info add an number to get the song info in queue at postion \n -clearlist is to clear the playlist \n -join is to join the vc \n -leave is to leave the vc \n -skip is for skipping the song \n -pause is to pause the music \n -resume is to resume the music \n -shuffle is to shuffle the song in playlist \n -lremove is to remove the last song in the queue \n -count is to count the total song in queue \n -seek is to seek to the timestamp in song \n -beforeinfo is to get the info of the song that just play before \n -again is the add the song that just play to be play next after the current song is done playling \n -addbefore is the add the song that just done playing to the last postion of the queue in the playlist \n -loop is to loop the current song \n -loopplaylist is to loop the current song in queue \n -warp is to get the song url \n -is24/7 to see if i will be afk in a vc \n -remove is to remove the song number in queue \n -isloop check if bot is in a infite loop \n [full github manunal here](https://github.com/poohzaza166/Utachi-discord/wiki)', color=0xfff347)
+    embeds = discord.Embed(title='Manunal', description='-play insert search terms or url or playlist link (support playing from youtube and youtube music) \n if the video is the part of the playlist I will only play the song and not the whole playlist \n -playnext simlar to play but this will insert the song to be play after the current song \n -playnow is the same as playnext but will play the song instantly \n -ytmusic you know the drills but insted from youtube it from youtubemusic \n -queue will show the song in queue \n -info is to get the current song playing info add an number to get the song info in queue at postion \n -clearlist is to clear the playlist \n -join is to join the vc \n -leave is to leave the vc \n -skip is for skipping the song \n -pause is to pause the music \n -resume is to resume the music \n -shuffle is to shuffle the song in playlist \n -lremove is to remove the last song in the queue \n -count is to count the total song in queue \n -seek is to seek to the timestamp in song \n -beforeinfo is to get the info of the song that just play before \n -again is the add the song that just play to be play next after the current song is done playling \n -addbefore is the add the song that just done playing to the last postion of the queue in the playlist \n -loop is to loop the current song \n -loopplaylist is to loop the current song in queue \n -warp is to get the song url \n -is24/7 to see if i will be afk in a vc \n -remove is to remove the song number in queue \n -isloop check if bot is in a infite loop \n [full github manunal here](https://github.com/poohzaza166/Utachi-discord/wiki)', color=0xfff347)
     await ctx.send(embed=embeds)
 
 # abit of easter egg
 @client.command()
 ###ANTI#SPAM##
 async def groovy(ctx, *, a):
-    
-        
     await ctx.send('wrong person he not here')
+
 
 # shuffle command
 @client.command()
@@ -237,19 +272,19 @@ async def groovy(ctx, *, a):
 async def shuffle(ctx):
     guildid = ctx.message.guild.id
     random.shuffle(play_que.setdefault(guildid, []))
-    
-        
+
+
     await ctx.send(random.choice(shuffleres))
 
-# clear playlist command 
+# clear playlist command
 @client.command(aliases=['clear'])
 ###ANTI#SPAM##
 async def clearlist(ctx):
     clearlistres = ["gotchu, list cleared!"]# edit shit here
     guildid = ctx.message.guild.id
     del play_que.setdefault(guildid, [])[:]
-    
-        
+
+
     await ctx.send(random.choice(clearlistres))
 
 # remove the last song from playlist
@@ -259,8 +294,8 @@ async def lremove(ctx):
     bremoveres = ["gotchu, I have removed the last song!"]
     guildid = ctx.message.guild.id
     del play_que.setdefault(guildid, [])[-1]
-    
-        
+
+
     await ctx.send(random.choice(bremoveres))
 
 # check the song in queue
@@ -283,13 +318,13 @@ async def queue(ctx):
         for n in range(ammountoftime):
             video = Video.get(now_playing[n])
             listofplay.append(video['title'])
-        currnetsong =  Video.getInfo(playurl, mode= ResultMode.json)
+        currnetsong =  Video.getInfo(playurl[guildid], mode= ResultMode.json)
         s = currnetsong['title']
         for a, i in enumerate(listofplay):
             print(a)
             print(i)
             if a == 0:
-                lol = 'Now playing ' + '[' + s + ']' + '(' + playurl + ')'
+                lol = 'Now playing ' + '[' + s + ']' + '(' + playurl[guildid] + ')'
                 actual2.append(lol)
             elif a >= 1:
                 j += 1
@@ -297,7 +332,7 @@ async def queue(ctx):
                 actual2.append(test)
         print(actual2)
         convertstring = str(actual2)[1:-1]
-        actuallist = convertstring 
+        actuallist = convertstring
         list1 = actuallist.replace(',', '\n\n' )
         embeds = discord.Embed(title='Song in queue', description=list1 ,type='link', color=0xfff347)
         if len(now_playing) < 5:
@@ -320,177 +355,375 @@ async def remove(ctx, numbera=None):
         play_que.setdefault(guildid, []).pop(number)
         videoinfo = Video.getInfo(removed_song, mode= ResultMode.json)
         # print(videoinfo)
-        r_song = '[' + videoinfo['title'] + ']' + '(' + removed_song + ')'   
+        r_song = '[' + videoinfo['title'] + ']' + '(' + removed_song + ')'
         embeds = discord.Embed(title=f'Ok removed song number {song_number}', description=r_song ,type='link', color=0xfff347)
         await ctx.send(embed=embeds)
 
 
-# command to play sound from a youtube URL
-@client.command(pass_context=True,aliases=['p'])
-###ANTI#SPAM##
-async def play(ctx, *, url=None):
-    guildid = ctx.message.guild.id
-    channels = ctx.message.author.voice.channel
-    voice = get(client.voice_clients, guild=ctx.guild)
-    if voice and voice.is_connected():
-        await voice.move_to(channels)
-    else:
-        voice = await channels.connect()
+@client.command(pass_context=True,aliases=['p','pnext','pnow','ytmusic','playnext','playnow','play'])
+async def wat(ctx, *, url=None):
+	guildid = ctx.message.guild.id
+	channels = ctx.message.author.voice.channel
+	callwith = ctx.invoked_with
+	voice = get(client.voice_clients, guild=ctx.guild)
+	if voice and voice.is_connected():
+		await voice.move_to(channels)
+	else:
+		voice = await channels.connect()
 
-    print(url)
-    if url == None:
-        await ctx.send('um \n were we suppose to be playing something here?')    
-    elif "https://www.youtube.com/playlist?list=" in url:
-        playlistid = url.replace("https://www.youtube.com/playlist?list=", '')
-        videos = scrapetube.get_playlist(playlistid)
-        for video in videos:
-            videourl = "https://www.youtube.com/watch?v=" + video['videoId']
-            play_que.setdefault(guildid, []).append(videourl)
-        # while playlist:
-        #     print('Getting more videos...')
-        #     play_que.get(playlist.getVideos())
-        print('ok')
-        if not voice.is_playing():
-            startplay(ctx)
-                       
-            await ctx.send("gotchu, playlist is now playing!")
-        else:
-                       
-            await ctx.send('alright this playlist will be play next ')
+	print(url)
+	print(f'trigger type {callwith}')
+	if url == None:
+		await ctx.send('um \n were we suppose to be playing something here?')
+	elif "https://www.youtube.com/playlist?list=" in url:
+		if 'p' in callwith or 'play' in callwith or 'pnext' in callwith or 'playnext' in callwith:
+			playlistid = url.replace("https://www.youtube.com/playlist?list=", '')
+			videos = scrapetube.get_playlist(playlistid)
+			for video in videos:
+				videourl = "https://www.youtube.com/watch?v=" + video['videoId']
+				play_que.setdefault(guildid, []).append(videourl)
+			print('ok')
+			if not voice.is_playing():
+				startplay(ctx)
+				await ctx.send("gotchu, playlist is now playing!")
+			else:
 
-    elif "https://www.youtube" or 'https://music.youtube' in url:
-        print('it a url')
-        play_que.setdefault(guildid, []).append(url)
-        if not voice.is_playing():
-            startplay(ctx)
-                       
-            await ctx.send(f"gotchu, {url} is now playing!")
-        else:
-                       
-            await ctx.send ("alright this video will be play next")
+				await ctx.send('alright this playlist will be play next ')
+		else:
+			await ctx.send('unable force skip an entire queue to play a playlist (intentional)')
+	elif "https://www.youtube" in url or 'https://music.youtube.com' in url or 'https://youtube.be' in url:
+		print('it a url')
+		if 'playnow' in callwith or 'pnow' in callwith:
+			play_que.setdefault(guildid, []).insert(1,url)
+			if not voice.is_playing():
+				startplay(ctx)
+				await ctx.send(f"gotchu, {url} is now playing!")
+				return
+			else:
+				voice.stop()
+				await ctx.send ("alright this video will be play now")
+				return
+		elif 'playnext' in callwith or 'pnext' in callwith:
+			play_que.setdefault(guildid, []).insert(1,url)
+			if not voice.is_playing():
+				startplay(ctx)
+				await ctx.send(f"gotchu, {url} is now playing!")
+				return
+			else:
+				await ctx.send ("alright this video will be play next")
+				return
+		else:
+			play_que.setdefault(guildid, []).append(url)
+			if not voice.is_playing():
+				startplay(ctx)
+				await ctx.send(f"gotchu, {url} is now playing!")
+				return
+			else:
+				await ctx.send ("alright this video will be play next")
+				return
 
-    elif 'https://' in url:
-        await ctx.send('it not a youtubelink')
+	elif 'https://' in url:
+		await ctx.send('it not a youtube or youtubemusic link')
 
-    else: 
-        print("normal video search")
-        videosSearch = VideosSearch(url , limit = 1, language = 'en', region = 'UK')
-        videosResult = await videosSearch.next()
-        print(videosResult)
-        print(videosResult['result'][0]['link'])
-        play_que.setdefault(guildid, []).append(videosResult['result'][0]['link'])
-        if not voice.is_playing():
-            startplay(ctx)
-                       
-            await ctx.send("gotchu, "+ videosResult['result'][0]['title']  + "is now playing!")
-        else:
-                       
-            await ctx.send('alright this video will be play next')
+	else:
+		if 'ytmusic' in callwith:
+			a = ytmusic.search(query=url,filter='songs',limit=1,ignore_spelling=True)
+			if a:
+				pass
+			else:
+				await ctx.send('no music found')
+			print(a)
+			vid = 'https://music.youtube.com/watch?v=' + a[0]['videoId']
+			print(vid)
+			play_que.setdefault(guildid, []).append(vid)
+			if not voice.is_playing():
+				startplay(ctx)
 
-# command to play sound from a youtube URL next 
-@client.command(pass_context=True,aliases=['pnext'])
-###ANTI#SPAM##
-async def playnext(ctx, *, url=None):
-    guildid = ctx.message.guild.id
-    channels = ctx.message.author.voice.channel
-    voice = get(client.voice_clients, guild=ctx.guild)
-    if voice and voice.is_connected():
-        await voice.move_to(channels)
-    else:
-        voice = await channels.connect()
+				await ctx.send("gotchu, "+ a[0]['title']  + "is now playing!")
+			else:
+				await ctx.send('alright this video will be play next')
+		else:
+			print("normal video search")
+			videosSearch = VideosSearch(url , limit = 1)
+			videosResult = videosSearch.result()
+			print(videosResult)
+			if videosResult['result']:
+				pass
+			else:
+				await ctx.send('no video found')
+				return
 
-    print(url)
-    if url == None:
-        await ctx.send('um \n were we suppose to be playing something here?')        
-    elif "https://www.youtube.com/playlist?list=" in url:      
-        await ctx.send('adding playlist as a insert song is not supported')
+			if 'pnext' in callwith or 'playnext' in callwith:
+				print('playnext')
+				play_que.setdefault(guildid, []).insert(1,videosResult['result'][0]['link'])
+				if not voice.is_playing():
+					startplay(ctx)
+					await ctx.send("gotchu, "+ videosResult['result'][0]['title']  + "is now playing!")
+					return
+				else:
+					await ctx.send('alright this video will be play next')
+					return
+			elif 'playnow' in callwith or 'pnow' in callwith:
+				print('playnow')
+				play_que.setdefault(guildid, []).insert(1,videosResult['result'][0]['link'])
+				if not voice.is_playing():
+					startplay(ctx)
+					await ctx.send("gotchu, "+ videosResult['result'][0]['title']  + "is now playing!")
+					return
+				else:
+					voice.stop()
+					await ctx.send('alright this video will be play now')
+					return
 
-    elif "https://www.youtube" or 'https://music.youtube' in url:
-        print('it a url')
-        play_que.setdefault(guildid, []).insert(1,url)
-        if not voice.is_playing():
-            startplay(ctx)
-                       
-            await ctx.send(f"gotchu, {url} is now playing!")
-        else:
-                       
-            await ctx.send ("alright this video will be play next")
-
-    elif 'https://' in url:
-        await ctx.send('it not a youtubelink')
-
-    else: 
-        print("normal video search")
-        videosSearch = VideosSearch(url , limit = 1, language = 'en', region = 'UK')
-        videosResult = await videosSearch.next()
-        print(videosResult)
-        print(videosResult['result'][0]['link'])
-        play_que.setdefault(guildid, []).insert(1,videosResult['result'][0]['link'])
-        if not voice.is_playing():
-            startplay(ctx)
-                       
-            await ctx.send("gotchu, "+ videosResult['result'][0]['title']  + "is now playing!")
-        else:
-                       
-            await ctx.send('alright this video will be play next')
-
-# command to play sound from a youtube URL now
-@client.command(pass_context=True,aliases=['pnow'])
-###ANTI#SPAM##
-async def playnow(ctx, *, url=None):
-    guildid = ctx.message.guild.id
-    channels = ctx.message.author.voice.channel
-    voice = get(client.voice_clients, guild=ctx.guild)
-    if voice and voice.is_connected():
-        await voice.move_to(channels)
-    else:
-        voice = await channels.connect()
-
-    print(url)
-    if url == None:
-        await ctx.send('um \n were we suppose to be playing something here?')        
-    elif "https://www.youtube.com/playlist?list=" in url:
-        await ctx.send('adding playlist as a insert song is not supported')
-
-    elif "https://www.youtube" or 'https://music.youtube' in url:
-        print('it a url')
-        play_que.setdefault(guildid, []).insert(1,url)
-        if not voice.is_playing():
-            startplay(ctx)
-                       
-            await ctx.send(f"gotchu, {url} is now playing!")
-        else:
-            voice.stop()
-                       
-            await ctx.send ("alright this video will be play now")
-
-    elif 'https://' in url:
-        await ctx.send('it not a youtubelink')
-
-    else: 
-        print("normal video search")
-        videosSearch = VideosSearch(url , limit = 1, language = 'en', region = 'UK')
-        videosResult = await videosSearch.next()
-        print(videosResult)
-        print(videosResult['result'][0]['link'])
-        play_que.setdefault(guildid, []).insert(1,videosResult['result'][0]['link'])
-        if not voice.is_playing():
-            startplay(ctx)
-
-            await ctx.send("gotchu, "+ videosResult['result'][0]['title']  + "is now playing!")
-        else:
-            voice.stop()
-                       
-            await ctx.send('alright this video will be play now')
+			else:
+				print('play')
+				play_que.setdefault(guildid, []).append(videosResult['result'][0]['link'])
+				if not voice.is_playing():
+					startplay(ctx)
+					await ctx.send("gotchu, "+ videosResult['result'][0]['title']  + "is now playing!")
+					return
+				else:
+					await ctx.send('alright this video will be play next')
+					return
 
 
-# get the song url 
+# # command to play sound from a youtube URL
+# @client.command(pass_context=True,aliases=['p'])
+# ###ANTI#SPAM##
+# async def play(ctx, *, url=None):
+#     guildid = ctx.message.guild.id
+#     channels = ctx.message.author.voice.channel
+#     voice = get(client.voice_clients, guild=ctx.guild)
+#     if voice and voice.is_connected():
+#         await voice.move_to(channels)
+#     else:
+#         voice = await channels.connect()
+
+#     print(url)
+#     if url == None:
+#         await ctx.send('um \n were we suppose to be playing something here?')
+#     elif "https://www.youtube.com/playlist?list=" in url:
+#         playlistid = url.replace("https://www.youtube.com/playlist?list=", '')
+#         videos = scrapetube.get_playlist(playlistid)
+#         for video in videos:
+#             videourl = "https://www.youtube.com/watch?v=" + video['videoId']
+#             play_que.setdefault(guildid, []).append(videourl)
+#         # while playlist:
+#         #     print('Getting more videos...')
+#         #     play_que.get(playlist.getVideos())
+#         print('ok')
+#         if not voice.is_playing():
+#             startplay(ctx)
+
+#             await ctx.send("gotchu, playlist is now playing!")
+#         else:
+
+#             await ctx.send('alright this playlist will be play next ')
+
+#     elif "https://www.youtube" in url:
+#         print('it a url')
+#         play_que.setdefault(guildid, []).append(url)
+#         if not voice.is_playing():
+#             startplay(ctx)
+
+#             await ctx.send(f"gotchu, {url} is now playing!")
+#         else:
+
+#             await ctx.send ("alright this video will be play next")
+
+#     elif 'https://' in url:
+#         await ctx.send('it not a youtubelink')
+
+#     else:
+#         print("normal video search")
+#         videosSearch = VideosSearch(url , limit = 1)
+#         videosResult = videosSearch.result()
+#         print(videosResult)
+#         if videosResult['result']:
+#             pass
+#         else:
+#             await ctx.send('no video found')
+#             return
+#         # print(videosResult['result'][0]['link'])
+#         play_que.setdefault(guildid, []).append(videosResult['result'][0]['link'])
+#         if not voice.is_playing():
+#             startplay(ctx)
+
+#             await ctx.send("gotchu, "+ videosResult['result'][0]['title']  + "is now playing!")
+#         else:
+
+#             await ctx.send('alright this video will be play next')
+
+# # command to play sound from a youtube URL next
+# @client.command(pass_context=True,aliases=['pnext'])
+# ###ANTI#SPAM##
+# async def playnext(ctx, *, url=None):
+#     guildid = ctx.message.guild.id
+#     channels = ctx.message.author.voice.channel
+#     voice = get(client.voice_clients, guild=ctx.guild)
+#     if voice and voice.is_connected():
+#         await voice.move_to(channels)
+#     else:
+#         voice = await channels.connect()
+
+#     print(url)
+#     if url == None:
+#         await ctx.send('um \n were we suppose to be playing something here?')
+#     elif "https://www.youtube.com/playlist?list=" in url:
+#         await ctx.send('adding playlist as a insert song is not supported')
+
+#     elif "https://www.youtube" in url:
+#         print('it a url')
+#         play_que.setdefault(guildid, []).insert(1,url)
+#         if not voice.is_playing():
+#             startplay(ctx)
+
+#             await ctx.send(f"gotchu, {url} is now playing!")
+#         else:
+
+#             await ctx.send ("alright this video will be play next")
+
+#     elif 'https://' in url:
+#         await ctx.send('it not a youtubelink')
+
+#     else:
+#         print("normal video search")
+#         videosSearch = VideosSearch(url , limit = 1, language = 'en', region = 'UK')
+#         videosResult = videosSearch.result()
+#         if videosResult['result']:
+#             pass
+#         else:
+#             await ctx.send('no video found')
+#             return
+#         print(videosResult)
+#         print(videosResult['result'][0]['link'])
+#         play_que.setdefault(guildid, []).insert(1,videosResult['result'][0]['link'])
+#         if not voice.is_playing():
+#             startplay(ctx)
+
+#             await ctx.send("gotchu, "+ videosResult['result'][0]['title']  + "is now playing!")
+#         else:
+
+#             await ctx.send('alright this video will be play next')
+
+# # command to play sound from a youtube URL now
+# @client.command(pass_context=True,aliases=['pnow'])
+# ###ANTI#SPAM##
+# async def playnow(ctx, *, url=None):
+#     guildid = ctx.message.guild.id
+#     channels = ctx.message.author.voice.channel
+#     voice = get(client.voice_clients, guild=ctx.guild)
+#     if voice and voice.is_connected():
+#         await voice.move_to(channels)
+#     else:
+#         voice = await channels.connect()
+
+#     print(url)
+#     if url == None:
+#         await ctx.send('um \n were we suppose to be playing something here?')
+#     elif "https://www.youtube.com/playlist?list=" in url:
+#         await ctx.send('adding playlist as a insert song is not supported')
+
+#     elif "https://www.youtube" in url:
+#         print('it a url')
+#         play_que.setdefault(guildid, []).insert(1,url)
+#         if not voice.is_playing():
+#             startplay(ctx)
+
+#             await ctx.send(f"gotchu, {url} is now playing!")
+#         else:
+#             voice.stop()
+
+#             await ctx.send ("alright this video will be play now")
+
+#     elif 'https://' in url:
+#         await ctx.send('it not a youtubelink')
+
+#     else:
+#         print("normal video search")
+#         videosSearch = VideosSearch(url , limit = 1, language = 'en', region = 'UK')
+#         videosResult = videosSearch.result()
+#         if videosResult['result']:
+#             pass
+#         else:
+#             await ctx.send('no video found')
+#             return
+#         print(videosResult)
+#         print(videosResult['result'][0]['link'])
+#         play_que.setdefault(guildid, []).insert(1,videosResult['result'][0]['link'])
+#         if not voice.is_playing():
+#             startplay(ctx)
+
+#             await ctx.send("gotchu, "+ videosResult['result'][0]['title']  + "is now playing!")
+#         else:
+#             voice.stop()
+
+#             await ctx.send('alright this video will be play now')
+
+# @client.command(pass_context=True,aliases=['ytmusic'])
+# ###ANTI#SPAM##
+# async def youtubemusicplay(ctx, *, url=None):
+#     guildid = ctx.message.guild.id
+#     channels = ctx.message.author.voice.channel
+#     voice = get(client.voice_clients, guild=ctx.guild)
+#     if voice and voice.is_connected():
+#         await voice.move_to(channels)
+#     else:
+#         voice = await channels.connect()
+
+#     print(url)
+#     if url == None:
+#         await ctx.send('um \n were we suppose to be playing something here?')
+#     elif "https://music.youtube.com/playlist?list=" in url:
+#         ytmusic.get
+
+#     elif "https://music.youtube.com/watch?v=" in url:
+#         print('it a url')
+#         play_que.setdefault(guildid, []).insert(1,url)
+#         if not voice.is_playing():
+#             startplay(ctx)
+
+#             await ctx.send(f"gotchu, {url} is now playing!")
+#         else:
+#             await ctx.send ("alright this video will be play now")
+
+#     elif 'https://' in url:
+#         await ctx.send('it not a youtubelink')
+
+#     else:
+#         print("normal video search")
+#         # videosSearch = VideosSearch(url , limit = 1, language = 'en', region = 'UK')
+#         # videosResult = videosSearch.result()
+#         # print(videosResult)
+#         # print(videosResult['result'][0]['link'])
+#         a = ytmusic.search(query=url,filter='songs',limit=1,ignore_spelling=True)
+#         # name = a[0]['title']
+#         # print(type(name))
+#         if a:
+#             pass
+#         else:
+#             await ctx.send('no music found')
+#         print(a)
+#         vid = 'https://music.youtube.com/watch?v=' + a[0]['videoId']
+#         print(vid)
+#         play_que.setdefault(guildid, []).append(vid)
+#         if not voice.is_playing():
+#             startplay(ctx)
+
+#             await ctx.send("gotchu, "+ a[0]['title']  + "is now playing!")
+#         else:
+#             await ctx.send('alright this video will be play next')
+
+
+
+
+# get the song url
 @client.command(aliases=['sauce'])
 ###ANTI#SPAM##
 async def warp(ctx):
     guildid = ctx.message.guild.id
-    print(playurl)      
-    await ctx.send("the current song link playing is " + playurl)
+    print(playurl[guildid])
+    await ctx.send("the current song link playing is " + playurl[guildid])
 
 
 # skip the song in playlist
@@ -499,7 +732,7 @@ async def warp(ctx):
 async def skip(ctx):
     voice = get(client.voice_clients, guild=ctx.guild)
     if voice.is_playing():
-        voice.stop()         
+        voice.stop()
         await ctx.send(random.choice(replyskip))
         # play_next(ctx)
 
@@ -512,7 +745,7 @@ async def resume(ctx):
     voice = get(client.voice_clients, guild=ctx.guild)
     if not voice.is_playing():
         voice.resume()
-               
+
         await ctx.send('the music is resuming!')
 
 
@@ -524,21 +757,21 @@ async def pause(ctx):
     voice = get(client.voice_clients, guild=ctx.guild)
     if voice.is_playing():
         voice.pause()
-               
+
         await ctx.send(random.choice(replypause))
 
-# give the current song info 
+# give the current song info
 @client.command(aliases=['current','song','info'])
 ###ANTI#SPAM##
 async def currentsonginfo(ctx, song=0, isplayed=False, nextsonginfo=None):
     guildid = ctx.message.guild.id
     if song == 0:
-        songq = playurl
+        songq = playurl[guildid]
     else:
         songq = play_que[guildid][song]
     if isplayed == False:
-        videoinfo = Video.getInfo(songq, mode= ResultMode.json)
-               
+        videoinfo = Video.getInfo(songq, mode=ResultMode.json)
+
         await ctx.send(f'song in queue number {song}')
         await ctx.send("the current song playing is: " + videoinfo['title'])
         await ctx.send("...and it has been viewed " + videoinfo['viewCount']['text'] + " times!")
@@ -546,7 +779,7 @@ async def currentsonginfo(ctx, song=0, isplayed=False, nextsonginfo=None):
     else:
         if updatecurrentsong.get(guildid) == True:
             videoinfo = Video.getInfo(nextsonginfo, mode= ResultMode.json)
-            list1 =  'Now playing ' + videoinfo['title'] 
+            list1 =  'Now playing ' + videoinfo['title']
             embeds = discord.Embed(title=list1 ,type='rich' ,url=nextsonginfo,color=0xfff347)
             # print(videoinfo['thumbnails'][0][0]['url'])
             embeds.set_image(url=videoinfo['thumbnails'][3]['url'])
@@ -560,9 +793,9 @@ async def currentsonginfo(ctx, song=0, isplayed=False, nextsonginfo=None):
             global reactid
             reactid = str(message.id)
             print(reactid)
-        
 
-# debug command 
+
+# debug command
 @client.command()
 async def view(ctx):
     print(play_que)
@@ -576,13 +809,15 @@ async def view(ctx):
     print(isloop)
     print('------------------------------------')
     print(updatecurrentsong)
+    print('------------------------------------')
+    print(looplist)
 
 # count the current song in playlist
 @client.command(aliases=['songcount', 'total'])
 ###ANTI#SPAM##
 async def count(ctx):
     guildid = ctx.message.guild.id
-    await ctx.send("counting...")       
+    await ctx.send("counting...")
     await ctx.send(f" {len(play_que[guildid])} songs are in this queue")
 
 # the main play function
@@ -594,15 +829,14 @@ def startplay(ctx, timestamp='00:00'):
         FFMPEG_OPTIONS = {
             'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 ', 'options': f'-vn -ss {timestamp}'}
         voice = get(client.voice_clients, guild=ctx.guild)
-        global playurl
-        playurl = play_que[guildid][0]
-        hadplay.setdefault(guildid, []).insert(0, playurl)
+        playurl[guildid] = play_que[guildid][0]
+        hadplay.setdefault(guildid, []).insert(0, playurl[guildid])
         if not voice.is_playing():
             try:
                 with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
-                    info = ydl.extract_info(playurl, download=False)
+                    info = ydl.extract_info(playurl[guildid], download=False)
                 URL = info['url']
-                voice.play(FFmpegPCMAudio(source=URL, **FFMPEG_OPTIONS), after=lambda e: play_next(ctx))   
+                voice.play(FFmpegPCMAudio(source=URL, **FFMPEG_OPTIONS), after=lambda e: play_next(ctx))
                 voice.is_playing()
                 print('playing')
                 # backinfo.setdefault(guildid, []).pop(0)
@@ -612,7 +846,7 @@ def startplay(ctx, timestamp='00:00'):
     else:
         asyncio.run_coroutine_threadsafe(suck(ctx, a=False), _loop)
 
-#function       
+#function
 async def suck(ctx, a=False):
 
     if a == False:
@@ -625,7 +859,7 @@ async def video_error(ctx):
     asyncio.run_coroutine_threadsafe(play_next(ctx), _loop)
 
 
-# skip to parts in song 
+# skip to parts in song
 @client.command()
 ###ANTI#SPAM##
 async def seek(ctx, timestamp=None):
@@ -633,7 +867,7 @@ async def seek(ctx, timestamp=None):
     guildid = ctx.message.guild.id
     if timestamp == None:
         await ctx.send('give me the time to seek the play head too')
-    else:        
+    else:
         play_que.setdefault(guildid, []).insert(0,play_que[guildid][0])
         voice.stop()
         print(timestamp)
@@ -642,7 +876,7 @@ async def seek(ctx, timestamp=None):
         a = len(hadplay[guildid])
         if a >= 2:
             hadplay.setdefault(guildid, []).pop(2)
-            await ctx.send(f'skiped to {timestamp}')   
+            await ctx.send(f'skiped to {timestamp}')
         else:
             pass
 
@@ -656,9 +890,9 @@ def play_next(ctx):
     else:
         asyncio.run_coroutine_threadsafe(suck(ctx), _loop)
     if not guildid in backinfo:
-        backinfo.setdefault(guildid, []).append(playurl)
-    elif playurl != backinfo[guildid][-1]:
-        backinfo.setdefault(guildid, []).append(playurl)
+        backinfo.setdefault(guildid, []).append(playurl[guildid])
+    elif playurl[guildid] != backinfo[guildid][-1]:
+        backinfo.setdefault(guildid, []).append(playurl[guildid])
         a = len(backinfo[guildid])
         if a >= 3:
             backinfo.setdefault(guildid, []).pop(0)
@@ -675,23 +909,23 @@ def play_next(ctx):
             startplay(ctx)
         else:
             startplay(ctx)
-         
+
     else:
         print('seek function in use ')
 
 
-# get the song that just play before link   
+# get the song that just play before link
 @client.command(aliases=['before'])
 ###ANTI#SPAM##
 async def beforeinfo(ctx):
     guildid = ctx.message.guild.id
-    print(playurl)
+    print(playurl[guildid])
     videoinfo = Video.getInfo(backinfo[guildid][-1], mode= ResultMode.json)
-    
-           
+
+
     await ctx.send(videoinfo['title'])
     await ctx.send("has been viewed")
-    await ctx.send(videoinfo['viewCount']['text'] + " time")    
+    await ctx.send(videoinfo['viewCount']['text'] + " time")
     # play_que.setdefault(guildid, []).insert(0,hadplay[guildid][0])
     # voice = get(client.voice_clients, guild=ctx.guild)
     # voice.stop()
@@ -703,7 +937,7 @@ async def beforeinfo(ctx):
 async def playthatagain(ctx):
     guildid = ctx.message.guild.id
     play_que.setdefault(guildid, []).insert(1,backinfo[guildid][-1])
-              
+
     await ctx.send('ok that song will be play again')
 
 # add the prevoius song to queue
@@ -712,27 +946,37 @@ async def playthatagain(ctx):
 async def addbefore(ctx):
     guildid = ctx.message.guild.id
     play_que.setdefault(guildid, []).append(backinfo[guildid][-1])
-    
-          
+
+
     await ctx.send("the previous song has now added to the queue!")
 
 # loop the entire playlist
 @client.command(aliases=['looplist'])
 ###ANTI#SPAM##
 async def loopplaylist(ctx, logica=None):
-    
-        if logica is None:
-            await ctx.send("loop? loop what? give me a number!\no(≧口≦)o")
-        elif int(logica) <= 1000:
-            guildid = ctx.message.guild.id
-            for n in range(int(logica)):
-                play_que.setdefault(guildid, []).extend(play_que[guildid])
-                print(f"added {n}")
-            await ctx.send(f"Alright, the entire playlist will be looped {logica} times!")
-        else:
-            await ctx.send("fuck off Girix L. Whitescale#3843")
+    if logica is None:
+        # if looplist.get(guildid) == False:
+        #     looplist[guildid] = True
+        #     global looplist
+        #     looplistsong = play_que.copy()
+        #     return
+        # if looplist.get(guildid) == True:
+        #     looplist[guildid] = False
+        #     del looplistsong
+        #     return
+        await ctx.send('give me ammount of time to loop the playlist')
+    elif int(logica) <= 1000:
+        guildid = ctx.message.guild.id
+        adda = play_que[guildid]
+        for n in range(int(logica)):
+            play_que.setdefault(guildid, []).extend(adda)
+            print(f"added {n}")
+        await ctx.send(f"Alright, the entire playlist will be looped {logica} times!")
+        del adda
+    else:
+        await ctx.send("fuck off Girix L. Whitescale#3843")
 
-# loop just the video 
+# loop just the video
 @client.command()
 ###ANTI#SPAM##
 async def loop(ctx, logica=None):
@@ -741,13 +985,15 @@ async def loop(ctx, logica=None):
             if isloop.get(guildid) == True:
                 isloop[guildid] = False
                 await ctx.send('ok I had stopped the loop')
+                return
             if isloop.get(guildid) == False:
                 isloop[guildid] = True
                 await ctx.send('ok looping this song infinitely')
+                return
         elif int(logica) <= 1000:
             guildid = ctx.message.guild.id
             for n in range(int(logica)):
-                play_que.setdefault(guildid, []).append(playurl)
+                play_que.setdefault(guildid, []).append(playurl[guildid])
                 print(f"added {n}")
             await ctx.send(f"Alright, this song will be looped {logica} times!")
         else:
@@ -783,7 +1029,7 @@ async def playitchy2020 (ctx):
             'https://youtube.com/playlist?list=PLQJHbSBLRWJQgrteRNu9e6317iTUcSCUh']
     del play_que.setdefault(guildid, [])[:]
     itchrandom_respond = ["Playing itchy’s act 2!", "Ooo, my favorite!", "itchy's playlist huh?\ngotchu!"]
-    await ctx.send(random.choice(itchrandom_respond)) 
+    await ctx.send(random.choice(itchrandom_respond))
     for b in url:
         a = b.replace('https://www.youtube.com/playlist?list=','')
         videos = scrapetube.get_playlist(a)
@@ -814,7 +1060,7 @@ async def playitchy2019 (ctx):
         await voice.move_to(channels)
     else:
         voice = await channels.connect()
-    url = [ 'https://www.youtube.com/playlist?list=PLQJHbSBLRWJQS-q5yFzhxo3ibjFYREuvI', 
+    url = [ 'https://www.youtube.com/playlist?list=PLQJHbSBLRWJQS-q5yFzhxo3ibjFYREuvI',
             'https://www.youtube.com/playlist?list=PLQJHbSBLRWJTPyj6wUe72-UdJEBEcQW2_',
             'https://www.youtube.com/playlist?list=PLQJHbSBLRWJQfxi0ry3VnnioDvOCfODgF',
             'https://www.youtube.com/playlist?list=PLQJHbSBLRWJRpoPK3MMtNy2JkxhbjRAE3',
@@ -823,7 +1069,7 @@ async def playitchy2019 (ctx):
             'https://www.youtube.com/playlist?list=PLQJHbSBLRWJRX8mSWWwtLgSVy5sf_2GnH']
     del play_que.setdefault(guildid, [])[:]
     itchrandom_respond = ["Playing itchy’s act 1!", "wow, a classic!", "itchy's first playlist huh?\ngotchu!"]
-    await ctx.send(random.choice(itchrandom_respond)) 
+    await ctx.send(random.choice(itchrandom_respond))
     for b in url:
         a = b.replace('https://www.youtube.com/playlist?list=','')
         videos = scrapetube.get_playlist(a)
@@ -851,7 +1097,7 @@ async def playitchys(ctx):
     url = ['https://youtube.com/playlist?list=PLSJh9S2IPebGSSqkXACtbCJJcYc26Iy3i']
     del play_que.setdefault(guildid, [])[:]
     itchrandom_respond = ["Playing itchy’s!", "nice pick!", "itchy's entire playlist huh?\ngotchu!"]
-    await ctx.send(random.choice(itchrandom_respond)) 
+    await ctx.send(random.choice(itchrandom_respond))
     for b in url:
         a = b.replace('https://www.youtube.com/playlist?list=','')
         videos = scrapetube.get_playlist(a)
@@ -879,7 +1125,7 @@ async def playpooh (ctx):
     url = 'PLKu0PlxNFnZUjUzSxccTzHOgEYYGlSJk5'
     del play_que.setdefault(guildid, [])[:]
     pooh = ["Playing father playlist",'daddy favorite music']
-    await ctx.send(random.choice(pooh)) 
+    await ctx.send(random.choice(pooh))
     videos = scrapetube.get_playlist(url)
     for video in videos:
         print("test")
@@ -990,8 +1236,8 @@ async def on_command_error(ctx, error):
         await ctx.send('chill bro')
     else:
         pass
-    
-            
+
+
 # @client.event
 # async def on_reaction_remove(reaction, user):
 #     pass
