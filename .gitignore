@@ -1,0 +1,7 @@
+__pycache__
+.vscode
+config
+*.log
+*.txt
+ignore-folder
+*.tar

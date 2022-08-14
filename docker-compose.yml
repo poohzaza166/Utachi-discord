@@ -1,0 +1,7 @@
+version: '3.3'
+services:
+  utachi:
+    restart: unless-stopped
+    image: utachi-discord-re:lattest
+    volumes:
+      - ./config/:/app/config

@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+py-cord = {extras = ["voice"], version = "*"}
+pyyaml = "*"
+asyncio = "*"
+google-api-python-client = "*"
+ytmusicapi = "*"
+spotipy = "*"
+pynacl = "*"
+cd = "*"
+yt-dlp = "*"
+
+[dev-packages]
+pbr = "*"
+
+[requires]
+python_version = "3.10"

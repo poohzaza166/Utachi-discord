@@ -1,0 +1,1 @@
+docker build --no-cache -t utachi-discord-re:lattest .
