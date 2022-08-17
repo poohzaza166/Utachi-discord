@@ -1,1 +1,1 @@
-docker build --no-cache -t utachi-discord-re:lattest .
+docker build --no-cache -t poohzaza/utachi-discord:latest .

@@ -17,8 +17,6 @@ RUN ls
 
 COPY requirements.txt /app/
 
-COPY entrypoint.sh /app/
-
 RUN mkdir /app/config
 
 RUN pip install -r requirements.txt

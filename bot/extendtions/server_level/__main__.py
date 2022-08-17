@@ -7,6 +7,7 @@ from discord.ext import commands, tasks
 from discord.utils import get
 
 from ...fileio import botconfig
+from ...fileio import databasessavefile
 from .lib.main import manager
 from ...log import logs
 
@@ -27,7 +28,7 @@ class level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        if os.path.exists('config/database.yaml'):
+        if os.path.exists(databasessavefile):
             lv.getaload()
             logs.info('loaded config file successfully')
         else:
