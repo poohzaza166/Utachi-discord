@@ -371,6 +371,22 @@ which have {song["like"]} like
         await ctx.send(random.choice(respond))
 
     @commands.command()
+    async def playjag(self, ctx):
+        guildid = str(ctx.message.guild.id)
+        channels = ctx.message.author.voice.channel
+        voice = get(self.client.voice_clients, guild=ctx.guild)
+        if voice and voice.is_connected():
+            await voice.move_to(channels)
+        else:
+            voice = await channels.connect()
+        music.clearlist(guildid=guildid)
+        respond = ['Playing jag playlist on spotify \n might take a while to start since i have to convert spotify link to yotube']
+        music.add_song(guildid=guildid,url='https://open.spotify.com/playlist/37i9dQZF1EprefcXJEAqWX?si=1713c2c44b384d72')
+        music.shuffle(guildid=guildid)
+        self.player(guildid=guildid,ctx=ctx)
+        await ctx.send(random.choice(respond))
+
+    @commands.command()
     async def playitchys(self, ctx):
         guildid = str(ctx.message.guild.id)
         channels = ctx.message.author.voice.channel
