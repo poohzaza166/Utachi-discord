@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 from ...fileio import botconfig
-
+from ...log import logs
 # coding:utf-8
 
 adminacc = list(botconfig['bot_setting']['botadminacc'])
@@ -18,7 +18,7 @@ class usermanager(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print('profile manager loaded')
+        logs.info('profile manager loaded')
 
     @commands.command()
     async def amiadmin(self, ctx):
