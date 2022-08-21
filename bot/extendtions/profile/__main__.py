@@ -2,6 +2,7 @@ import pathlib
 import random
 
 import discord
+from discord.ext import bridge
 from discord.ext import commands
 
 from ...fileio import botconfig
@@ -20,18 +21,18 @@ class usermanager(commands.Cog):
     async def on_ready(self):
         logs.info('profile manager loaded')
 
-    @commands.command()
+    @bridge.bridge_command()
     async def amiadmin(self, ctx):
-        userid = ctx.message.author.id
+        userid = ctx.author.id
         if userid in adminacc:
             await ctx.send('yes you are an admin')
         else:
             await ctx.send('no you are not an admin')
 
 
-    @commands.command()
+    @bridge.bridge_command()
     async def change_profile(self, ctx):
-        userid = ctx.message.author.id
+        userid = ctx.author.id
         if userid in adminacc:
             a = 0
             for path in pathlib.Path(imager).iterdir():
@@ -46,25 +47,25 @@ class usermanager(commands.Cog):
         else:
             await ctx.send('you aint my master not following the order')
 
-    @commands.command()
+    @bridge.bridge_command()
     async def change_music_status(self, ctx, *,status):
-        userid = ctx.message.author.id
+        userid = ctx.author.id
         if userid in adminacc:
             await self.client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=status))
             await ctx.send(f'status changed to {status}')
         else:
             await ctx.send("you ait my dad don't tell me what to do lol")
 
-    @commands.command()
+    @bridge.bridge_command()
     async def change_game_status(self, ctx, *,status):
-        userid = ctx.message.author.id
+        userid = ctx.author.id
         if userid in adminacc:
             await self.client.change_presence(activity=discord.Game(status))
             await ctx.send(f'status changed to {status}')
         else:
             await ctx.send("you ait my dad don't tell me what to do lol")
 
-    @commands.command()
+    @bridge.bridge_command()
     async def ping(self, ctx):
         await ctx.send(f'here! {round(self.client.latency * 1000)}ms')
 

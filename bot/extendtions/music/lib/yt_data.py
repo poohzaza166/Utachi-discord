@@ -95,7 +95,16 @@ def parse_data(url):
         redict.setdefault('url' ,url)
         redict.setdefault('chlink',  'video privated or channel deleated')
         return redict
-
+    except KeyError as a:
+        logs.debug(a)
+        redict.setdefault('videoname', 'video privated or channel deleated')
+        redict.setdefault('bych',  'video privated or channel deleated')
+        redict.setdefault('view',  'video privated or channel deleated')
+        redict.setdefault('like',  'video privated or channel deleated')
+        redict.setdefault('dislike' , 'video privated or channel deleated')
+        redict.setdefault('url' ,url)
+        redict.setdefault('chlink',  'video privated or channel deleated')
+        return redict
 
 if __name__ == "__main__":
     test = parse_data("https://www.youtube.com/watch?v=du10-NshNHo")

@@ -1,7 +1,7 @@
 import random
 
 from discord.ext import commands
-
+from discord.ext import bridge
 # coding:utf-8
 
 class luckgen(commands.Cog):
@@ -10,8 +10,8 @@ class luckgen(commands.Cog):
         self.client = client
 
 
-    @commands.command(aliases=['8ball'])
-    async def Magic8Ball( self ,ctx, *, question):
+    @bridge.bridge_command(aliases=['8ball'])
+    async def magic8ball( self ,ctx, *, question):
         responses = ["It is certain.",
                     "It is decidedly so.",
                     "Without a doubt.",
@@ -34,8 +34,8 @@ class luckgen(commands.Cog):
                     "Very doubtful."]
         await ctx.send(f'Question: {question}\nAnswer: {random.choice(responses)}')
 
-    @commands.command(aliases=['dnd_dice'])
-    async def DND_dice( self ,ctx):
+    @bridge.bridge_command()
+    async def dnd_dice( self ,ctx):
         responses = ["1",
                      "2",
                      "3",
@@ -58,8 +58,8 @@ class luckgen(commands.Cog):
                      "20"]
         await ctx.send(f'{random.choice(responses)}/20')
 
-    @commands.command(aliases=['coin'])
-    async def Coin_flip( self ,ctx):
+    @bridge.bridge_command(aliases=['coin'])
+    async def coin_flip( self ,ctx):
         responses = ["Heads",
                      "Tails"]
         await ctx.send(f'{random.choice(responses)}!')

@@ -3,7 +3,7 @@ from asyncio import tasks
 import os
 import discord
 import yaml
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks ,bridge
 from discord.utils import get
 
 from ...fileio import botconfig
@@ -63,9 +63,9 @@ class level(commands.Cog):
                     if lv.hadping(guildid=guildid,user=author) == True:
                         await channel.send(f'{mention} {nameup} you have reached level {a}')
 
-    @commands.command(aliases=['top10','leaderboard'])
+    @bridge.bridge_command(aliases=['top10','leaderboard'])
     async def leadboard(self, ctx):
-        lead = lv.leaderboard(int(ctx.message.guild.id))
+        lead = lv.leaderboard(int(ctx.guild.id))
         board = {}
         j = 0
         output = []
@@ -96,69 +96,69 @@ class level(commands.Cog):
         embeds = discord.Embed(title='Leader Board', description=outa, color=hexcolour)
         await ctx.send(embed=embeds)
 
-    @commands.command()
+    @bridge.bridge_command()
     async def annoying(self, ctx):
-        await ctx.send(lv.toggleping(guildid=ctx.message.author.id,user=ctx.message.author.id))
+        await ctx.send(lv.toggleping(guildid=ctx.author.id,user=ctx.author.id))
 
-    @commands.command()
+    @bridge.bridge_command()
     async def isanoying(self, ctx):
-        if lv.hadping(user=str(ctx.message.author.id),guildid=ctx.message.guild.id) == True:
+        if lv.hadping(user=str(ctx.author.id),guildid=ctx.guild.id) == True:
             await ctx.send('pinging you when level up')
-        if lv.hadping(user=str(ctx.message.author.id),guildid=ctx.message.guild.id) == False:
+        if lv.hadping(user=str(ctx.author.id),guildid=ctx.guild.id) == False:
             await ctx.send('not pinging you when level up')
 
-    @commands.command(aliases=['lv','level'])
+    @bridge.bridge_command(aliases=['lv','level'])
     async def checklevel(self, ctx):
-        await ctx.send(f"your level is {str(lv.checklevel(guildid=ctx.message.guild.id,user=str(ctx.author.id)))}")
+        await ctx.send(f"your level is {str(lv.checklevel(guildid=ctx.guild.id,user=str(ctx.author.id)))}")
 
-    @commands.command(aliases=['xp'])
+    @bridge.bridge_command(aliases=['xp'])
     async def checkxp(self, ctx):
-        await ctx.send(f'your xp is {str(lv.checkxp(guildid=ctx.message.guild.id,user=str(ctx.author.id)))}')
+        await ctx.send(f'your xp is {str(lv.checkxp(guildid=ctx.guild.id,user=str(ctx.author.id)))}')
 
-    @commands.command()
+    @bridge.bridge_command()
     async def setlevel(self, ctx, userid=None, number=None):
-        if ctx.message.author.id in adminacc:
+        if ctx.author.id in adminacc:
             if userid == None:
                 await ctx.send('say who are you setting the level for')
             elif number == None:
                 await ctx.send('give me a number for level lol')
             else:
                 a = int(number)
-                lv.setlevel(guildid=ctx.message.guild.id,user=str(userid),level=a)
+                lv.setlevel(guildid=ctx.guild.id,user=str(userid),level=a)
         else:
             await ctx.send('No lol \n only bot owner can use this command')
 
-    @commands.command()
+    @bridge.bridge_command()
     async def setxp(self, ctx, userid, number=None):
-        if ctx.message.author.id in adminacc:
+        if ctx.author.id in adminacc:
             if number == None:
                 await ctx.send('give me a number for xp lol')
             else:
                 a = int(number)
-                lv.setxp(guildid=ctx.message.guild.id,user=str(userid),level=a)
+                lv.setxp(guildid=ctx.guild.id,user=str(userid),level=a)
         else:
             await ctx.send('No lol \n only bot owner can use this command')
 
-    @commands.command()
+    @bridge.bridge_command()
     async def nextlv(self, ctx):
-        a = lv.xpneedlv(guildid=ctx.message.guild.id,user=str(ctx.author.id))
-        l = lv.checkxp(guildid=ctx.message.guild.id,user=str(ctx.author.id))
+        a = lv.xpneedlv(guildid=ctx.guild.id,user=str(ctx.author.id))
+        l = lv.checkxp(guildid=ctx.guild.id,user=str(ctx.author.id))
         c = a - l
         await ctx.send(f'xp require to reach next level is {a}')
         await ctx.send(f'your xp is {l}')
         await ctx.send(f'you currently need {c} more xp to level up!')
 
-    @commands.command()
+    @bridge.bridge_command()
     async def savestate(self, ctx):
-        if ctx.message.author.id in adminacc:
+        if ctx.author.id in adminacc:
             lv.savestate()
             await ctx.send('saved state successfully')
         else:
             await ctx.send('No lol \n only bot owner can use this command')
 
-    @commands.command()
+    @bridge.bridge_command()
     async def getaload(self, ctx):
-        if ctx.message.author.id in adminacc:
+        if ctx.author.id in adminacc:
             lv.getaload()
             await ctx.send('load save success')
         else:

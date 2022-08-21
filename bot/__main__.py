@@ -1,5 +1,3 @@
-from os import sync
-from pprint import pprint
 import random
 
 import discord
@@ -15,8 +13,8 @@ from bot.fileio import botconfig
 
 typani = []
 
-
-class Pcontext(commands.Context):
+class Pcontext(bridge.BridgeExtContext):
+# class Pcontext(commands.Context):
     async def send(self, msg=None, embed=None):
         logs.debug(f'ok printing {msg}')
         if self.message.guild.id in typani:
@@ -26,24 +24,39 @@ class Pcontext(commands.Context):
                 except AttributeError:
                     wd_ls = str(embed.description).split()
                     # wd_ls = ['1']
-                dtime = ((botconfig['bot_setting']['aniwpm']/60) * len(wd_ls)) + random.randint(int(botconfig['bot_setting']['animin']),int(botconfig['bot_setting']['animax']))
+                dtime = ((60/botconfig['bot_setting']['aniwpm']) * len(wd_ls)) + random.randint(int(botconfig['bot_setting']['animin']),int(botconfig['bot_setting']['animax']))
                 logs.info(f'delaying animation for {dtime} second')
                 await asyncio.sleep(dtime)
             if embed == None:
-                await self.message.channel.send(msg)
+                await self.respond(msg)
             elif embed != None:
-                await self.message.channel.send(embed=embed)
+                await self.respond(embed=embed)
         else:
             if embed == None:
-                await self.message.channel.send(msg)
+                await self.respond(msg)
             elif embed != None:
-                await self.message.channel.send(embed=embed)
+                await self.respond(embed=embed)
 
-# class APcontext(discord.ApplicationContext):
+class APcontext(bridge.BridgeApplicationContext):
+    def __init__(self, bot, interaction):
+        pass
+        super().__init__(bot, interaction)
+        # self.message = discord.message()
+        # self.message.guild = interaction.guild
+        # self.message.author = interaction.authors
+        # self.message.channel = interaction.channel
+        # self.message = discord.message()
+        # self.message.guild = self.guild
+        # self.message.author = self.author
 
 class CUbot(commands.Bot):
+# class CUbot(commands.Bot):
     async def get_context(self, message: discord.Message, *, cls=Pcontext):
         return await super().get_context(message,cls=cls)
+
+    async def get_application_context(self, interaction: discord.Interaction, cls=APcontext):
+        # The same method for custom application context.
+        return await super().get_application_context(interaction, cls=cls)
 
 def run():
 
@@ -64,7 +77,7 @@ def run():
 
     @client.command()
     async def animation(ctx):
-        guildid = ctx.message.guild.id
+        guildid = ctx.guild.id
         if guildid in typani:
             await ctx.send('disabling typing animation')
             typani.remove(guildid)
