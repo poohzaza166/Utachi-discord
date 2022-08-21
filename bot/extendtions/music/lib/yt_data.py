@@ -76,6 +76,7 @@ def parse_data(url):
     if 0 in response['items']:
         raise Exception('api error')
     redict = {}
+    logs.debug(url)
     try:
         redict.setdefault('videoname', str(response['items'][0]['snippet']['title']))
         redict.setdefault('bych', str(response['items'][0]['snippet']['channelTitle']))
@@ -87,6 +88,7 @@ def parse_data(url):
         return redict
     except IndexError as a:
         logs.debug(a)
+        logs.info(a)
         redict.setdefault('videoname', 'video privated or channel deleated')
         redict.setdefault('bych',  'video privated or channel deleated')
         redict.setdefault('view',  'video privated or channel deleated')
@@ -97,6 +99,7 @@ def parse_data(url):
         return redict
     except KeyError as a:
         logs.debug(a)
+        logs.info(a)
         redict.setdefault('videoname', 'video privated or channel deleated')
         redict.setdefault('bych',  'video privated or channel deleated')
         redict.setdefault('view',  'video privated or channel deleated')
