@@ -86,10 +86,10 @@ def parse_data(url):
         elif c == None:
             s = False
             break
-    sleep(int(0.3))
-    v = playlist
-    del playlist[:]
-    return v
+
+    return playlist
+
+
 
 if __name__ == "__main__":
     parse_data('PLKu0PlxNFnZUjUzSxccTzHOgEYYGlSJk5')

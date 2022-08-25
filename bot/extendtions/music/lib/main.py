@@ -21,6 +21,7 @@ class musicss:
         platform_list = ['https://www.youtube.com', 'https://music.youtube.com/watch?v=']
         if "https://www.youtube.com/playlist?list=" in url:
             self.queue.setdefault(guildid, []).extend(yt_playlist.parse_data(url))
+            del yt_playlist.playlist[:]
             logs.debug('it a playlist')
 
         elif 'https://youtu.be/' in url:
