@@ -6,4 +6,4 @@ git clone https://github.com/poohzaza166/Utachi-discord.git
 
 modify the example config
 
-mv example.botsetting.confg
+nano config/botconfig.yaml
