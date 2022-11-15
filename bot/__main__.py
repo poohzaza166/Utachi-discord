@@ -1,15 +1,17 @@
+import asyncio
 import random
 
 import discord
-from discord.ext import commands
+from discord.ext import bridge, commands
 from discord.utils import get
-from discord.ext import bridge
-import asyncio
-from .log import logs
 
 from bot.fileio import botconfig
 
+from bot.log import logs
+
 # coding:utf-8
+
+
 
 typani = []
 
@@ -24,7 +26,7 @@ class Pcontext(bridge.BridgeExtContext):
                 except AttributeError:
                     wd_ls = str(embed.description).split()
                     # wd_ls = ['1']
-                dtime = ((60/botconfig['bot_setting']['aniwpm']) * len(wd_ls)) + random.randint(int(botconfig['bot_setting']['animin']),int(botconfig['bot_setting']['animax']))
+                dtime = (((botconfig['bot_setting']['aniwpm'])/60) * len(wd_ls)) + random.randint(int(botconfig['bot_setting']['animin']),int(botconfig['bot_setting']['animax']))
                 logs.info(f'delaying animation for {dtime} second')
                 await asyncio.sleep(dtime)
             if embed == None:
@@ -92,7 +94,8 @@ def run():
         client.load_extension(name='bot.extendtions.server_level.__main__')
     if botconfig['bot_setting']['luckgen'] == True:
         client.load_extension(name='bot.extendtions.misc.__main__')
-
+    if botconfig['bot_setting']['dislikelookup'] == True:
+        client.load_extension(name="bot.extendtions.music.getYoutubedata")
 
     client.run(botconfig['bot_setting']['bottoken'])
 

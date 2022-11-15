@@ -1,4 +1,3 @@
-from ast import alias
 import asyncio
 import random
 from re import A
@@ -87,10 +86,10 @@ class Music(commands.Cog):
                             if music.isinfiteloop.get(str(before.channel.guild.id)) == True:
                                 music.isinfiteloop[str(before.channel.guild.id)] = False
                             return
+
     @bridge.bridge_command(aliases=['come', 'cum'])
     # @bridge.bridge_command(aliases=['come', 'cum'])
     async def join(self, ctx):
-        tp = ctx
         channels = ctx.author.voice.channel
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
@@ -190,10 +189,17 @@ class Music(commands.Cog):
     @bridge.bridge_command(aliases=['current','song','currentsonginfo'])
     async def info(self, ctx, index=0):
         guildid = str(ctx.guild.id)
-        # guildid = playlist.music(guildid=ctx.guild.id)
         song = music.get_song_data(index=index,guildid=guildid)
-        await ctx.send(f'''song in queue number {index}
+        if index == 0:
+            await ctx.send(f'''song in queue number {index}
 the current song playing is: {song['videoname']}
+...and it has been viewed {song['view']} times!
+also here's the link! --> {song["url"]}
+which have {song["like"]} like
+... and a {song["dislike"]}''')
+        else:
+            await ctx.send(f'''song in queue number {index}
+{song['videoname']}
 ...and it has been viewed {song['view']} times!
 also here's the link! --> {song["url"]}
 which have {song["like"]} like
@@ -486,8 +492,10 @@ which have {song["like"]} like
                 a = music.queue[guildid][0]
                 music.set_current_song(url=a,guildid=guildid)
                 try:
+                    
                     with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
                         info = ydl.extract_info(a, download=False)
+
                     URL = info['url']
                     voice.play(FFmpegPCMAudio(source=URL, **FFMPEG_OPTIONS), after=lambda e: self.play_next(ctx))
                     voice.is_playing()
