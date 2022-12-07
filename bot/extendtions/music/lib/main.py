@@ -1,11 +1,14 @@
 import random
+import threading
 
 from ytmusicapi import YTMusic
 
-from . import spot_yt, yt_data, yt_playlist, yt_search
-
+from ....errors import noVideoFound,insertPlaylist
 # coding:utf-8
 from ....log import logs
+from . import yt_data, yt_search
+from .spot_yts import spot_yt
+from .yt_playlists import yt_playlist
 
 ytmusic = YTMusic()
 
@@ -16,12 +19,20 @@ class musicss:
         self.history = {}
         self.isinfiteloop = {}
         self.currentsong = {}
+        self.yt_playlist = yt_playlist()
+        self.spot_yt = spot_yt()
 
     def add_song(self, guildid ,url: str, platform='youtube'):
         platform_list = ['https://www.youtube.com', 'https://music.youtube.com/watch?v=']
         if "https://www.youtube.com/playlist?list=" in url:
-            self.queue.setdefault(guildid, []).extend(yt_playlist.parse_data(url))
-            del yt_playlist.playlist[:]
+            from multiprocessing.pool import ThreadPool
+            pool = ThreadPool(processes=1)
+
+            async_result = pool.apply_async(self.yt_playlist.parse_data, [url]) # tuple of args for foo
+
+            # do some other stuff in the main process
+
+            self.queue.setdefault(guildid, []).extend(async_result.get())
             logs.debug('it a playlist')
 
         elif 'https://youtu.be/' in url:
@@ -43,7 +54,15 @@ class musicss:
 
         elif 'https://open.spotify.com/playlist/' in url:
             logs.debug('converting spotify playlist')
-            self.queue.setdefault(guildid, []).extend(spot_yt.parse_data(url))
+            # detatch the spoitify process from normal process since it block voice chat heart beat
+            from multiprocessing.pool import ThreadPool
+            pool = ThreadPool(processes=1)
+
+            async_result = pool.apply_async(self.spot_yt.parse_data, [url]) # tuple of args for foo
+
+            # do some other stuff in the main process
+
+            self.queue.setdefault(guildid, []).extend(async_result.get())
 
         elif any(plat in url for plat in platform_list) == True:
             logs.debug('it a url')
@@ -55,21 +74,21 @@ class musicss:
                 if a:
                     pass
                 else:
-                    raise Exception('music not found')
+                    raise noVideoFound()
                 vid = 'https://music.youtube.com/watch?v=' + a[0]['videoId']
                 logs.debug(vid)
                 self.queue.setdefault(guildid, []).append(vid)
             else:
                 a = yt_search.main(url)
                 if a == False:
-                    raise Exception('video not found')
+                    raise noVideoFound()
                 else:
                     self.queue.setdefault(guildid, []).append(a)
 
     def insert_song(self, guildid,url: str, platform='youtube'):
         platform_list = ['https://www.youtube.com', 'https://music.youtube.com/watch?v=']
         if "https://www.youtube.com/playlist?list=" in url:
-            raise Exception('inserting playlist is not allow')
+            raise insertPlaylist()
 
         elif 'https://youtu.be/' in url:
             rename = url.replace('https://youtu.be/','')
@@ -95,7 +114,7 @@ class musicss:
                 if a:
                     pass
                 else:
-                    raise Exception('No music found')
+                    raise noVideoFound()
                 logs.debug(a)
                 vid = 'https://music.youtube.com/watch?v=' + a[0]['videoId']
                 logs.debug(vid)
@@ -103,13 +122,23 @@ class musicss:
             else:
                 a = yt_search.main(url)
                 if a == False:
-                    raise Exception("No music Found")
+                    raise noVideoFound()
                 else:
                     self.queue.setdefault(guildid, []).insert(1,a)
 
     def get_song_data(self, guildid ,index=0):
-        if index == 0:
-            songq = self.currentsong[guildid]
+        # print(self.queue.get(guildid))
+        if self.queue.get(guildid) == None:
+            logs.info('no guild found createing one ')
+            self.queue.setdefault(guildid,[])
+            if self.currentsong.get(guildid) == None:
+                return None
+        elif index == 0:
+            print(self.currentsong.get(guildid))
+            if self.currentsong.get(guildid) == None:
+                return None
+            else:
+                songq = self.currentsong[guildid]
         else:
             songq = self.queue[guildid][index]
 
@@ -138,9 +167,13 @@ class musicss:
         j = 0
         buffer = []
         output = []
-        # if self.queue[guildid] not in self.queue:
-        #     raise Exception('no song yet')
-        if len(self.queue[guildid]) == 0:
+        if self.queue.get(guildid) == None:
+            logs.info('no guild have been created')
+            logs.info('creatinoneone')
+            self.queue.setdefault(guildid, [])
+            logs.info('created successfully')
+            return 'No Song in queue' , None
+        elif len(self.queue[guildid]) == 0:
             return 'No Song in queue' , None
         elif len(self.queue[guildid]) <= 6:
             n = len(self.queue[guildid])

@@ -1,13 +1,10 @@
 import asyncio
 import random
-from re import A
 
 import discord
 import yt_dlp
 from discord import FFmpegPCMAudio
-from discord.ext import commands
-from discord.ext import bridge
-from discord.ext.bridge import BridgeContext, BridgeExtContext,BridgeApplicationContext
+from discord.ext import commands, bridge
 from discord.utils import get
 
 from ...log import logs
@@ -70,7 +67,7 @@ class Music(commands.Cog):
                     vctimmer[before.channel.guild.id] = 0
 
                     while True:
-                        logs.debug("time", str(vctimmer[before.channel.guild.id]))
+                        logs.debug(f"time {str(vctimmer[before.channel.guild.id])}")
 
                         await asyncio.sleep(1)
 
@@ -88,8 +85,11 @@ class Music(commands.Cog):
                             return
 
     @bridge.bridge_command(aliases=['come', 'cum'])
-    # @bridge.bridge_command(aliases=['come', 'cum'])
     async def join(self, ctx):
+        self.njoin(ctx)
+
+    # pycord framework bug workaround 
+    async def njoin(self,ctx):
         channels = ctx.author.voice.channel
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
@@ -118,7 +118,7 @@ class Music(commands.Cog):
 
     @bridge.bridge_command(aliases=['p'])
     async def play(self, ctx, *, url= None):
-        await self.join(ctx)
+        await self.njoin(ctx)
         guildid = str(ctx.guild.id)
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if url == None:
@@ -135,7 +135,7 @@ class Music(commands.Cog):
 
     @bridge.bridge_command(aliases=['pnext'])
     async def playnext(self, ctx, *, url = None):
-        await self.join(ctx)
+        await self.njoin(ctx)
         guildid = str(ctx.guild.id)
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if url == None:
@@ -152,7 +152,7 @@ class Music(commands.Cog):
 
     @bridge.bridge_command(aliases=['pnow'])
     async def playnow(self, ctx, *, url= None):
-        await self.join(ctx)
+        await self.njoin(ctx)
         guildid = str(ctx.guild.id)
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if url == None:
@@ -171,7 +171,7 @@ class Music(commands.Cog):
 
     @bridge.bridge_command()
     async def ytmusic(self, ctx, * ,url = None):
-        await self.join(ctx)
+        await self.njoin(ctx)
         guildid = str(ctx.guild.id)
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if url == None:
@@ -190,7 +190,9 @@ class Music(commands.Cog):
     async def info(self, ctx, index=0):
         guildid = str(ctx.guild.id)
         song = music.get_song_data(index=index,guildid=guildid)
-        if index == 0:
+        if song == None:
+            await ctx.send('no song had been played yet')
+        elif index == 0:
             await ctx.send(f'''song in queue number {index}
 the current song playing is: {song['videoname']}
 ...and it has been viewed {song['view']} times!
@@ -391,8 +393,8 @@ which have {song["like"]} like
             await voice.move_to(channels)
         else:
             voice = await channels.connect()
-        url = ['https://www.youtube.com/playlist?list=PLKu0PlxNFnZUjUzSxccTzHOgEYYGlSJk5',
-               'https://music.youtube.com/playlist?list=OLAK5uy_kIa_eK4TM_gMkf44jFK118aDSnxYSgVxI']
+        url = ['https://music.youtube.com/playlist?list=OLAK5uy_kIa_eK4TM_gMkf44jFK118aDSnxYSgVxI',
+        'https://www.youtube.com/playlist?list=PLKu0PlxNFnZUjUzSxccTzHOgEYYGlSJk5']
         music.clearlist(guildid=guildid)
         respond = ['Playing father playlist','daddy favorite playlist music','Ok good pick I see you have a shit taste here']
         for a in url:
