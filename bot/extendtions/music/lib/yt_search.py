@@ -15,7 +15,6 @@ from googleapiclient.errors import HttpError
 from ....log import logs
 from .key import ApiKeys
 
-
 scopes = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
 def main(querry : str):

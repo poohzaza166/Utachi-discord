@@ -5,16 +5,15 @@
 # https://developers.google.com/explorer-help/code-samples#python
 
 import os
-from time import sleep
 from pprint import pprint
+from time import sleep
 
 import googleapiclient.discovery
 import googleapiclient.errors
 from googleapiclient.errors import HttpError
 
-from .key import ApiKeys
 from ....log import logs
-
+from .key import ApiKeys
 
 scopes = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
