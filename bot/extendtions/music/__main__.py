@@ -86,7 +86,7 @@ class Music(commands.Cog):
 
     @bridge.bridge_command(aliases=['come', 'cum'])
     async def join(self, ctx):
-        self.njoin(ctx)
+        await self.njoin(ctx)
 
     # pycord framework bug workaround 
     async def njoin(self,ctx):
