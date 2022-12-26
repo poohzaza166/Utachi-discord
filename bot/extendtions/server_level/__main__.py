@@ -167,7 +167,7 @@ class level(commands.Cog):
     @tasks.loop(seconds=int(botconfig['bot_setting']['autobackup']))
     async def autobackup(a=None):
         logs.info('ok')
-        lv.savestate
+        lv.savestate()
         logs.info('autobackup had been perform')
 
 def setup(client):
