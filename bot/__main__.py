@@ -26,7 +26,7 @@ class Pcontext(bridge.BridgeExtContext):
                 except AttributeError:
                     wd_ls = str(embed.description).split()
                     # wd_ls = ['1']
-                dtime = (((botconfig['bot_setting']['aniwpm'])/60) * len(wd_ls)) + random.randint(int(botconfig['bot_setting']['animin']),int(botconfig['bot_setting']['animax']))
+                dtime = ((botconfig['bot_setting']['aniwpm']) / len(wd_ls)) + random.randint(int(botconfig['bot_setting']['animin']),int(botconfig['bot_setting']['animax']))
                 logs.info(f'delaying animation for {dtime} second')
                 await asyncio.sleep(dtime)
             if embed == None:
