@@ -4,6 +4,7 @@ import random
 import discord
 from discord.ext import bridge, commands
 from discord.utils import get
+# from discord.ext.bridge import BridgeExtContext
 
 from bot.fileio import botconfig
 
@@ -15,8 +16,8 @@ from bot.log import logs
 
 typani = []
 
-class Pcontext(bridge.BridgeExtContext):
-# class Pcontext(commands.Context):
+# class Pcontext(bridge.BridgeExtContext):
+class Pcontext(commands.Context):
     async def send(self, msg=None, embed=None):
         logs.debug(f'ok printing {msg}')
         if self.message.guild.id in typani:
@@ -30,14 +31,14 @@ class Pcontext(bridge.BridgeExtContext):
                 logs.info(f'delaying animation for {dtime} second')
                 await asyncio.sleep(dtime)
             if embed == None:
-                await self.respond(msg)
+                await self.send(msg)
             elif embed != None:
-                await self.respond(embed=embed)
+                await self.send(embed=embed)
         else:
             if embed == None:
-                await self.respond(msg)
+                await self.send(msg)
             elif embed != None:
-                await self.respond(embed=embed)
+                await self.send(embed=embed)
 
 class APcontext(bridge.BridgeApplicationContext):
     def __init__(self, bot, interaction):
@@ -51,8 +52,8 @@ class APcontext(bridge.BridgeApplicationContext):
         # self.message.guild = self.guild
         # self.message.author = self.author
 
-class CUbot(commands.Bot):
-# class CUbot(commands.Bot):
+# class CUbot(discord.bot):
+class CUbot(bridge.Bot):
     async def get_context(self, message: discord.Message, *, cls=Pcontext):
         return await super().get_context(message,cls=cls)
 
@@ -60,11 +61,17 @@ class CUbot(commands.Bot):
         # The same method for custom application context.
         return await super().get_application_context(interaction, cls=cls)
 
+# class BOTBRIDGE(bridge.Bot):
+#     async def get_context(self, message: discord.Message, cls=Pcontext) -> BridgeExtContext:
+#         return await super().get_context(message, cls=cls)
+
 def run():
 
     client = CUbot(command_prefix=commands.when_mentioned_or(botconfig['bot_setting']['botprefix']), intents=discord.Intents.all())
     # client = commands.Bot(command_prefix=botconfig['bot_setting']['botprefix'], intents=discord.Intents.all())
     # client = bridge.Bot(command_prefix=botconfig['bot_setting']['botprefix'], intents=discord.Intents.all())
+    # client = BOTBRIDGE(command_prefix=botconfig['bot_setting']['botprefix'], intents=discord.Intents.all())
+
 
     client.remove_command("help")
 
