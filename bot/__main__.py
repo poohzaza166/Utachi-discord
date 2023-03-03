@@ -31,18 +31,17 @@ class Pcontext(commands.Context):
                 logs.info(f'delaying animation for {dtime} second')
                 await asyncio.sleep(dtime)
             if embed == None:
-                await self.send(msg)
+                await self.reply(msg)
             elif embed != None:
-                await self.send(embed=embed)
+                await self.reply(embed=embed)
         else:
             if embed == None:
-                await self.send(msg)
+                await self.reply(msg)
             elif embed != None:
-                await self.send(embed=embed)
+                await self.reply(embed=embed)
 
 class APcontext(bridge.BridgeApplicationContext):
     def __init__(self, bot, interaction):
-        pass
         super().__init__(bot, interaction)
         # self.message = discord.message()
         # self.message.guild = interaction.guild
