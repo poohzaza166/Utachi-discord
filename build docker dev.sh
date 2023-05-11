@@ -1,3 +1,2 @@
-pipenv lock -v > requirements.txt
-
+pipenv run pip freeze > requirements.txt
 docker build --no-cache -t poohzaza/utachi-discord:latest .
